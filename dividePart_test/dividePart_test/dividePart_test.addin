@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Text>Command dividePart_test</Text>
+    <Description>Some description for dividePart_test</Description>
+    <Assembly>dividePart_test.dll</Assembly>
+    <FullClassName>dividePart_test.Command</FullClassName>
+    <ClientId>53fbf990-b3fa-49e6-81dc-8dd1c6884bcb</ClientId>
+    <VendorId>com.typepad.thebuildingcoder</VendorId>
+    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+  </AddIn>
+  <AddIn Type="Application">
+    <Name>Application dividePart_test</Name>
+    <Assembly>dividePart_test.dll</Assembly>
+    <FullClassName>dividePart_test.App</FullClassName>
+    <ClientId>0e423c7d-da19-46f8-9e56-14df216b044c</ClientId>
+    <VendorId>com.typepad.thebuildingcoder</VendorId>
+    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+  </AddIn>
+</RevitAddIns>
