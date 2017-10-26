@@ -32,6 +32,12 @@ namespace jsonDeserializer
 
             Account account = JsonConvert.DeserializeObject<Account>(json);
             Console.WriteLine(account.Email);
+            Console.WriteLine(account.Active);
+            Console.WriteLine(account.CreatedDate);
+            Console.WriteLine("Roles: ");
+            foreach( string role in account.Roles){
+                Console.WriteLine(role);
+            }
         }
     }
 }

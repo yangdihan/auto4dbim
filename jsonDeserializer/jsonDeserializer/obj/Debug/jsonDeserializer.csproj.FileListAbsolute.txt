@@ -7,3 +7,12 @@ A:\Yumo\VisualBasic Tutorial\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDes
 A:\Yumo\VisualBasic Tutorial\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.csproj.CoreCompileInputs.cache
 A:\Yumo\VisualBasic Tutorial\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.exe
 A:\Yumo\VisualBasic Tutorial\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.pdb
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\bin\Debug\jsonDeserializer.exe.config
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\bin\Debug\jsonDeserializer.exe
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\bin\Debug\jsonDeserializer.pdb
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\bin\Debug\Newtonsoft.Json.dll
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\bin\Debug\Newtonsoft.Json.xml
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.csprojResolveAssemblyReference.cache
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.csproj.CoreCompileInputs.cache
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.exe
+C:\Users\raamac\auto4dbim\jsonDeserializer\jsonDeserializer\obj\Debug\jsonDeserializer.pdb
