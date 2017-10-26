@@ -28,45 +28,47 @@ namespace dividePart_test
             Application app = uiapp.Application;
             Document doc = uidoc.Document;
             View view = doc.ActiveView;
+            //TaskDialog.Show("Revit", "Hello World");
 
-
-
-            //start to divide wall at levels
-            // start select all walls 
+    // Create filters and collect walls/ slabs/ columns id in corresponding collector
+        // walls
             IList<ElementId> walls_id = new List<ElementId>();
             FilteredElementCollector wall_collector = new FilteredElementCollector(doc).OfClass(typeof(Wall));
-            foreach (Element w in wall_collector)
-            {
-                if (w is Wall)
-                {
+            foreach (Element w in wall_collector) {
+                if (w is Wall) {
                     walls_id.Add(w.Id);
                 }
             }
-            // end select all walls      
+        // columns
+            IList<ElementId> columns_id = new List<ElementId>();
+            FilteredElementCollector column_collector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_StructuralColumns);
+            foreach (Element c in column_collector) {
+                if (c is FamilyInstance)
+                {
+                    columns_id.Add(c.Id);
+                }
+            }
+        // slabs
+            IList<ElementId> slabs_id = new List<ElementId>();
+            FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(Floor));
+            foreach (Element e in collector) {
+                if (e is Floor) {
+                    slabs_id.Add(e.Id);
+                }
+            }
 
-            // start select all columns 
-            //???
-            // end select all columns 
-
-            // start call create parts on wall list
-            using (Transaction t = new Transaction(doc, "Create Part"))
-            {
+    //call create parts on walls/ slabs/ columns collectors
+            using (Transaction t = new Transaction(doc, "Create Part")) {
                 t.Start();
                 // Create parts from the selected element
                 // There is "CreateParts" but no "CreatePart", so needed to use a list containing the one element
                 PartUtils.CreateParts(doc, walls_id);
+                PartUtils.CreateParts(doc, columns_id);
+                PartUtils.CreateParts(doc, slabs_id);
                 t.Commit();
             }
-            // end call create parts on wall list
-            // start divide parts for each wall in wall list
-            //ICollection<ElementId> selE = uidoc.Selection.GetElementIds();
-            //foreach (ElementId w_id in walls_id)
-            //{
-            //    selE.Add(w_id);
-            //}
 
-
-
+    // start divide parts for walls, columns, slabs
             foreach (ElementId w_id in walls_id)
             {
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, w_id, true, true);
@@ -96,45 +98,27 @@ namespace dividePart_test
                     PartUtils.DivideParts(doc, partsList, levels, curve_list, wall_sketchPlane.Id);
                     t.Commit();
                 }
+            }
 
-                // Set the view's "Parts Visibility" parameter so that parts are shown
-                Parameter p = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
-                using (Transaction t = new Transaction(doc, "Set View Parameter"))
-                {
+            // since walls and columns are all divided by all levels, so just use the sketch-plane of the last wall element
+            ElementId borrow_from_wall = walls_id[0];
+            foreach (ElementId c_id in columns_id) {
+
+                ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, c_id, true, true);
+                ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
+                IList<Curve> curve_list = new List<Curve>();
+                HostObject hostObj = doc.GetElement(borrow_from_wall) as HostObject;
+                Reference r = HostObjectUtils.GetSideFaces(hostObj, ShellLayerType.Exterior).First();
+
+                using (Transaction t = new Transaction(doc, "Divide Part at Levels")) {
                     t.Start();
-                    p.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
+                    SketchPlane column_sketchPlane = SketchPlane.Create(doc, r);
+                    PartUtils.DivideParts(doc, partsList, levels, curve_list, column_sketchPlane.Id);
                     t.Commit();
                 }
             }
-            // start divide parts for each wall in wall list
-            //end of divide wall at levels
 
-
-
-
-
-            ////start to select all slabs
-            IList<ElementId> slabs_id = new List<ElementId>();
-            FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(Floor));
-            foreach (Element e in collector)
-            {
-                if (e is Floor)
-                {
-                    slabs_id.Add(e.Id);
-                }
-            }
-            using (Transaction t = new Transaction(doc, "Create Part"))
-            {
-                t.Start();
-                PartUtils.CreateParts(doc, slabs_id);
-                t.Commit();
-            }
-            // end call create parts on list
-
-            //uidoc.ShowElements(slabs_id);
-            // start divide parts for each wall in list
-            foreach (ElementId s_id in slabs_id)
-            {
+            foreach (ElementId s_id in slabs_id) {
                 //Selection sel = uidoc.Selection;
                 //ISelectionFilter f = new JtElementsOfClassSelectionFilter<Grid>();
                 //Reference elemRef = sel.PickObject(ObjectType.Element, f, "Pick a grid");
@@ -155,8 +139,7 @@ namespace dividePart_test
 
                 HostObject hostObj = doc.GetElement(s_id) as HostObject;
                 Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
-                using (Transaction t = new Transaction(doc, "Divide Part at Grids"))
-                {
+                using (Transaction t = new Transaction(doc, "Divide Part at Grids")) {
                     t.Start();
                     //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
                     SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
@@ -166,16 +149,15 @@ namespace dividePart_test
                     t.Commit();
                 }
 
-                // Set the view's "Parts Visibility" parameter so that parts are shown
-                Parameter p = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
-                using (Transaction t = new Transaction(doc, "Set View Parameter"))
-                {
-                    t.Start();
-                    p.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
-                    t.Commit();
-                }
             }
-
+    // Set the view's "Parts Visibility" parameter so that parts are shown
+            Parameter p = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
+            using (Transaction t = new Transaction(doc, "Set View Parameter"))
+            {
+                t.Start();
+                p.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
+                t.Commit();
+            }
 
 
 
