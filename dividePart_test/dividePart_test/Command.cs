@@ -145,7 +145,7 @@ namespace dividePart_test
 
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
 
-                // Get all levels
+                // Get all grids YUMO
                 ICollection<ElementId> grids = new FilteredElementCollector(doc).OfClass(typeof(Grid)).OfCategory(BuiltInCategory.OST_Grids).ToElementIds();
 
 
@@ -162,6 +162,7 @@ namespace dividePart_test
                     SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
                     //SketchPlane grid_sketchPlane = null;
                     //sketchPlaneTransaction.Commit();
+                    // YUMO - actual cutting
                     PartUtils.DivideParts(doc, partsList, grids, curve_list, grid_sketchPlane.Id);
                     t.Commit();
                 }

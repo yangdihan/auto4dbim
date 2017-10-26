@@ -4,3 +4,9 @@ D:\Documents\dividePart_test\dividePart_test\obj\Debug\dividePart_test.csprojRes
 D:\Documents\dividePart_test\dividePart_test\obj\Debug\dividePart_test.csproj.CoreCompileInputs.cache
 D:\Documents\dividePart_test\dividePart_test\obj\Debug\dividePart_test.dll
 D:\Documents\dividePart_test\dividePart_test\obj\Debug\dividePart_test.pdb
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\bin\Debug\dividePart_test.dll
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\bin\Debug\dividePart_test.pdb
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\obj\Debug\dividePart_test.csprojResolveAssemblyReference.cache
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\obj\Debug\dividePart_test.csproj.CoreCompileInputs.cache
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\obj\Debug\dividePart_test.dll
+C:\Users\raamac\auto4dbim\dividePart_test\dividePart_test\obj\Debug\dividePart_test.pdb
