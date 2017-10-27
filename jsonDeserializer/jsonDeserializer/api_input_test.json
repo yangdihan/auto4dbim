@@ -1,0 +1,27 @@
+{
+	"Zones":{
+	"zone 1": {
+		"top": "Grid A",
+		"bottom": "Grid B",
+		"left": "Grid 1",
+		"right": "Grid 2"
+	},
+	"zone 2": {
+		"top": "Grid A",
+		"bottom": "Grid B",
+		"left": "Grid 2",
+		"right": "Grid 3"
+	},
+	"zone 3": {
+		"top": "Grid B",
+		"bottom": "Grid C",
+		"left": "Grid 1",
+		"right": "Grid 2"
+	},
+	"zone 4": {
+		"top": "Grid B",
+		"bottom": "Grid C",
+		"left": "Grid 2",
+		"right": "Grid 3"
+	}
+}}
