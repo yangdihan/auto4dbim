@@ -57,7 +57,12 @@ namespace dividePart_test
                 }
             }
 
-    //call create parts on walls/ slabs/ columns collectors
+        // filter out all levels and grids
+            ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
+            ICollection<ElementId> grids = new FilteredElementCollector(doc).OfClass(typeof(Grid)).OfCategory(BuiltInCategory.OST_Grids).ToElementIds();
+
+
+            //call create parts on walls/ slabs/ columns collectors
             using (Transaction t = new Transaction(doc, "Create Part")) {
                 t.Start();
                 // Create parts from the selected element
@@ -69,12 +74,10 @@ namespace dividePart_test
             }
 
     // start divide parts for walls, columns, slabs
+        // divide walls
             foreach (ElementId w_id in walls_id)
             {
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, w_id, true, true);
-
-                // Get all levels
-                ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
 
                 // Create a list of curves which needs to be used in DivideParts but for this example
                 // the divide is being done by levels so the curve list will be empty
@@ -100,12 +103,12 @@ namespace dividePart_test
                 }
             }
 
+        // divide columns
             // since walls and columns are all divided by all levels, so just use the sketch-plane of the last wall element
             ElementId borrow_from_wall = walls_id[0];
             foreach (ElementId c_id in columns_id) {
 
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, c_id, true, true);
-                ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
                 IList<Curve> curve_list = new List<Curve>();
                 HostObject hostObj = doc.GetElement(borrow_from_wall) as HostObject;
                 Reference r = HostObjectUtils.GetSideFaces(hostObj, ShellLayerType.Exterior).First();
@@ -118,6 +121,7 @@ namespace dividePart_test
                 }
             }
 
+        // divide slabs
             foreach (ElementId s_id in slabs_id) {
                 //Selection sel = uidoc.Selection;
                 //ISelectionFilter f = new JtElementsOfClassSelectionFilter<Grid>();
@@ -129,8 +133,19 @@ namespace dividePart_test
 
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
 
-                // Get all levels
-                ICollection<ElementId> grids = new FilteredElementCollector(doc).OfClass(typeof(Grid)).OfCategory(BuiltInCategory.OST_Grids).ToElementIds();
+                // HostObject hostObj = doc.GetElement(s_id) as HostObject;
+                // grids is a collector with grid ids
+                foreach (ElementId grid_id in grids)
+                {
+                    Grid cur = doc.GetElement(grid_id) as Grid;
+                    string cur_name = cur.Name;
+                    TaskDialog.Show("Element name of one grid", cur_name);
+                }
+                
+
+
+                //ElementId grid_id = grids.First();
+                
 
 
                 // Create a list of curves which needs to be used in DivideParts but for this example
