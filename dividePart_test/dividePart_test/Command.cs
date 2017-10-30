@@ -8,6 +8,11 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using Newtonsoft.Json;
+using jsonDeserializer;
 #endregion
 
 namespace dividePart_test
@@ -30,8 +35,12 @@ namespace dividePart_test
             View view = doc.ActiveView;
             //TaskDialog.Show("Revit", "Hello World");
 
-    // Create filters and collect walls/ slabs/ columns id in corresponding collector
-        // walls
+        // reading JSON file:
+            string path = @"D:\Documents\Revit Model\api_input_test.json";
+            var res = JsonConvert.DeserializeObject<zoneAllocation>(File.ReadAllText(path));
+
+            // Create filters and collect walls/ slabs/ columns id in corresponding collector
+            // walls
             IList<ElementId> walls_id = new List<ElementId>();
             FilteredElementCollector wall_collector = new FilteredElementCollector(doc).OfClass(typeof(Wall));
             foreach (Element w in wall_collector) {
@@ -121,46 +130,90 @@ namespace dividePart_test
                 }
             }
 
-        // divide slabs
+
+
+
+            // divide slabs
             foreach (ElementId s_id in slabs_id) {
-                //Selection sel = uidoc.Selection;
-                //ISelectionFilter f = new JtElementsOfClassSelectionFilter<Grid>();
-                //Reference elemRef = sel.PickObject(ObjectType.Element, f, "Pick a grid");
-                //Grid grid = doc.GetElement(elemRef) as Grid;
-                //ICollection<ElementId> grid_list = new List<ElementId>();
-                //grid_list.Add(grid.Id);
-                //IList<Curve> gridCurves = grid.GetCurvesInView(DatumExtentType.Model, view);
 
                 ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
-
-                // HostObject hostObj = doc.GetElement(s_id) as HostObject;
-                // grids is a collector with grid ids
-                foreach (ElementId grid_id in grids)
+                // find z of slab's top face
+                BoundingBoxXYZ bbox = doc.GetElement(s_id).get_BoundingBox(view);
+                double slab_top_face_z = bbox.Max.Z;
+                // all grids elementid are now in grids
+                IList<Curve> curve_trim = new List<Curve>();
+                // loop over all zones
+                foreach (var one_of_zone in res.Zones)
                 {
-                    Grid cur = doc.GetElement(grid_id) as Grid;
-                    string cur_name = cur.Name;
-                    TaskDialog.Show("Element name of one grid", cur_name);
+                    // find four bounding curve for one zone, not sure if itersection is counted to trim curves
+                    IList<Curve> cur_bound_box = new List<Curve>();
+
+                    // not yet used, need for later "mark" feature
+                    string cur_zone_name = one_of_zone.Key;
+
+                    // loop over all grids
+                    foreach (ElementId grid_id in grids)
+                    {
+                        
+                        Grid cur = doc.GetElement(grid_id) as Grid;
+                        string cur_name = cur.Name;
+                        if (cur_name == one_of_zone.Value.top){
+                            cur_bound_box.Add(cur.Curve);
+                        }
+                        if (cur_name == one_of_zone.Value.bottom) {
+                            cur_bound_box.Add(cur.Curve);
+                        }
+                        if (cur_name == one_of_zone.Value.left) {
+                            cur_bound_box.Add(cur.Curve);
+                        }
+                        if (cur_name == one_of_zone.Value.right) {
+                            cur_bound_box.Add(cur.Curve);
+                        }
+                    
+                    }
+                    // now four bounding curve objects are added to cur_bound_box list
+                    // try to find XYZ for them:
+                    Curve top_ = cur_bound_box[0];
+                    Curve bottom_ = cur_bound_box[1];
+                    Curve left_ = cur_bound_box[2];
+                    Curve right_ = cur_bound_box[3];
+
+                    double topleft_x = left_.GetEndPoint(0).X;
+                    double topleft_y = top_.GetEndPoint(0).Y;
+                    
+                    XYZ topleft = new XYZ(topleft_x, topleft_y, slab_top_face_z);
+
+                    double topright_x = right_.GetEndPoint(0).X;
+                    double topright_y = top_.GetEndPoint(0).Y;
+                    XYZ topright = new XYZ(topright_x, topright_y, slab_top_face_z);
+
+                    double botleft_x = left_.GetEndPoint(0).X;
+                    double botleft_y = bottom_.GetEndPoint(0).Y;
+                    XYZ botleft = new XYZ(botleft_x, botleft_y, slab_top_face_z);
+
+                    double botright_x = right_.GetEndPoint(0).X;
+                    double botright_y = bottom_.GetEndPoint(0).Y;
+                    XYZ botright = new XYZ(botright_x, botright_y, slab_top_face_z);
+
+                    Curve top_trim = Line.CreateBound(topleft, topright);
+                    curve_trim.Add(top_trim);
+                    Curve bot_trim = Line.CreateBound(botleft, botright);
+                    curve_trim.Add(bot_trim);
+                    Curve left_trim = Line.CreateBound(topleft, botleft);
+                    curve_trim.Add(left_trim);
+                    Curve right_trim = Line.CreateBound(topright, botright);
+                    curve_trim.Add(right_trim);
                 }
-                
-
-
-                //ElementId grid_id = grids.First();
-                
-
-
-                // Create a list of curves which needs to be used in DivideParts but for this example
-                // the divide is being done by levels so the curve list will be empty
-                IList<Curve> curve_list = new List<Curve>();
 
                 HostObject hostObj = doc.GetElement(s_id) as HostObject;
                 Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
+                ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
                 using (Transaction t = new Transaction(doc, "Divide Part at Grids")) {
                     t.Start();
                     //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
                     SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
-                    //SketchPlane grid_sketchPlane = null;
                     //sketchPlaneTransaction.Commit();
-                    PartUtils.DivideParts(doc, partsList, grids, curve_list, grid_sketchPlane.Id);
+                    PartUtils.DivideParts(doc, partsList, intersectingReferenceIds, curve_trim, grid_sketchPlane.Id);
                     t.Commit();
                 }
 
@@ -173,124 +226,6 @@ namespace dividePart_test
                 p.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
                 t.Commit();
             }
-
-
-
-
-            //ICollection<ElementId> elementIdsToDivide = new List<ElementId>();
-            //if (PartUtils.AreElementsValidForCreateParts(doc, slabs_id))
-            //{
-            //    // AreElementsValidForCreateParts returned true, so the selected element is not a part but it is an element that can be used to create a part. 
-            //    Transaction createPartTransaction = new Transaction(doc, "Create Part");
-            //    createPartTransaction.Start();
-            //    PartUtils.CreateParts(doc, slabs_id); // create the parts
-            //    createPartTransaction.Commit();
-            //    foreach (ElementId e_id in slabs_id)
-            //    {
-            //        elementIdsToDivide = PartUtils.GetAssociatedParts(doc, e_id, true, true);
-            //    }// get the id of the newly created part
-            //}
-            ////else if (pickedElement is Part)
-            ////{
-            ////    // The selected element is a part, so that part will be divided. 
-            ////    elementIdsToDivide.Add(pickedElement.Id);
-            ////}
-            //// Create geometry that will be used to divide the part. For this example, a new part will be divided from the main part that is one quarter of the face. More complex intelligence could be coded to divide the part based on construction logistics or the properties of the materials being used to create the part.
-            //XYZ pointRight = null;
-            //XYZ pointTop = null;
-            //XYZ pointCorner = null;
-            //XYZ pointCenter = null;
-
-            //SketchPlane sketchPlane = null;
-            //Plane plane = null;
-
-            //Options opt = new Options();
-            //opt.ComputeReferences = true;
-            //foreach (Element e in slabs)
-            //{
-            //    GeometryElement geomElem = e.get_Geometry(opt);
-            //    foreach (GeometryObject geomObject in geomElem)
-            //    {
-            //        if (geomObject is Solid) // get the solid geometry of the selected element
-            //        {
-            //            Solid solid = geomObject as Solid;
-            //            FaceArray faceArray = solid.Faces;
-            //            foreach (Face face in faceArray)
-            //            {
-            //                // find the center of the face
-            //                BoundingBoxUV bbox = face.GetBoundingBox();
-            //                UV center = new UV((bbox.Max.U - bbox.Min.U) / 2 + bbox.Min.U, (bbox.Max.V - bbox.Min.V) / 2 + bbox.Min.V);
-            //                XYZ faceNormal = face.ComputeNormal(center);
-            //                if (faceNormal.IsAlmostEqualTo(XYZ.BasisZ)) // this example is designed to work with a floor or other element with a large face whose normal is in the Z direction
-            //                {
-            //                    Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
-            //                    sketchPlaneTransaction.Start();
-            //                    plane = Plane.CreateByNormalAndOrigin(faceNormal, XYZ.Zero);
-            //                    sketchPlane = SketchPlane.Create(doc, plane);
-            //                    //sketchPlane = doc.SketchPlane.Create(face as PlanarFace);
-            //                    sketchPlaneTransaction.Commit();
-
-            //                    pointCenter = face.Evaluate(center);
-
-            //                    UV top = new UV((bbox.Max.U - bbox.Min.U) / 2 + bbox.Min.U, bbox.Max.V);
-            //                    pointTop = face.Evaluate(top);
-
-            //                    UV right = new UV(bbox.Max.U, (bbox.Max.V - bbox.Min.V) / 2 + bbox.Min.V);
-            //                    pointRight = face.Evaluate(right);
-
-            //                    UV corner = new UV(bbox.Max.U, bbox.Max.V);
-            //                    pointCorner = face.Evaluate(corner);
-
-            //                    break;
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-
-            ////Selection sel = uidoc.Selection;
-            ////Reference elemRef = sel.PickObject(
-            ////ObjectType.Element, f, "Pick a grid");
-            ////Grid grid = doc.GetElement(elemRef) as Grid;
-
-            //// Create the curves that will be used for the part division.
-            //IList<Curve> curveList = new List<Curve>();
-            ////Curve curve1 = app.Create.NewLine(pointCenter, pointRight, true);
-            //Curve curve1 = Line.CreateBound(pointCenter, pointRight);
-            //curveList.Add(curve1);
-            ////Curve curve2 = app.Create.NewLine(pointRight, pointCorner, true);
-            //Curve curve2 = Line.CreateBound(pointRight, pointCorner);
-            //curveList.Add(curve2);
-            ////Curve curve3 = app.Create.NewLine(pointCorner, pointTop, true);
-            //Curve curve3 = Line.CreateBound(pointCorner, pointTop);
-            //curveList.Add(curve3);
-            ////Curve curve4 = app.Create.NewLine(pointTop, pointCenter, true);
-            //Curve curve4 = Line.CreateBound(pointTop, pointCenter);
-            //curveList.Add(curve4);
-
-            //// intersectingReferenceIds will be empty for this example.
-            //ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
-
-            //// Divide the part
-            //Transaction dividePartTransaction = new Transaction(doc, "Divide Part");
-            //dividePartTransaction.Start();
-            //PartMaker maker = PartUtils.DivideParts(doc, elementIdsToDivide, intersectingReferenceIds, curveList, sketchPlane.Id);
-            //dividePartTransaction.Commit();
-            ////ICollection<ElementId> divElems = maker.GetSourceElementIds(); // Get the ids of the divided elements
-
-            //// Set the view's "Parts Visibility" parameter so that parts are shown
-            //Parameter partVisInView = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
-            //Transaction setPartVizTransaction = new Transaction(doc, "Set View Parameter");
-            //setPartVizTransaction.Start();
-            //partVisInView.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
-            //setPartVizTransaction.Commit();
-            ////// Access current selection
-
-
-
-
-
-
             return Result.Succeeded;
         }
     }

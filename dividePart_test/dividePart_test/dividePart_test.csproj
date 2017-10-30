@@ -42,6 +42,9 @@
     <Reference Include="AdWindows">
       <HintPath>..\..\..\..\Autodesk\Revit\Revit 2018\AdWindows.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\..\Autodesk\Revit\Revit 2018\RevitAPI.dll</HintPath>
       <Private>False</Private>
@@ -56,10 +59,14 @@
     <Compile Include="App.cs" />
     <Compile Include="JtElementsOfClassSelectionFilter.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="dividePart_test.addin" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
