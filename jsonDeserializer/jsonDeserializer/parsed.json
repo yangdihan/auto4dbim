@@ -1,0 +1,48 @@
+{
+    "Levels": {
+        "Lvl1": {
+            "Zones": {
+                "Area1": {
+                    "bottom": "Grid B",
+                    "left": "Grid 1",
+                    "right": "Grid 2",
+                    "top": "Grid A"
+                },
+                "Area2": {
+                    "bottom": "Grid B",
+                    "left": "Grid 2",
+                    "right": "Grid 4",
+                    "top": "Grid A"
+                },
+                "Area3": {
+                    "bottom": "Grid C",
+                    "left": "Grid 1",
+                    "right": "Grid 4",
+                    "top": "Grid B"
+                }
+            }
+        },
+        "Lvl2": {
+            "Zones": {
+                "Area1": {
+                            "bottom": "Grid B",
+                            "left": "Grid 1",
+                            "right": "Grid 2",
+                            "top": "Grid A"
+                        },
+                        "Area2": {
+                            "bottom": "Grid B",
+                            "left": "Grid 2",
+                            "right": "Grid 4",
+                            "top": "Grid A"
+                        },
+                        "Area3": {
+                            "bottom": "Grid C",
+                            "left": "Grid 1",
+                            "right": "Grid 4",
+                            "top": "Grid B"
+                        }
+                    }
+        }
+    }
+}
