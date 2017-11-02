@@ -132,6 +132,7 @@ namespace dividePart_test {
                 string slab_level = doc.GetElement(slab_level_id).Name;
                 foreach (var f in res.Levels) {
                     if (f.Key == slab_level) {
+                        //TaskDialog.Show("found level name: ", slab_level);
                         // ready to divide
                         ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
 
@@ -143,6 +144,7 @@ namespace dividePart_test {
 
                         // loop over all zones
                         foreach (var one_of_zone in f.Value.Zones) {
+                            //TaskDialog.Show("zone name: ", one_of_zone.Key);
                             // find four bounding curve for one zone, not sure if itersection is counted to trim curves
                             IList<Curve> cur_bound_box = new List<Curve>();
 
@@ -154,6 +156,7 @@ namespace dividePart_test {
 
                                 Grid cur = doc.GetElement(grid_id) as Grid;
                                 string cur_name = cur.Name;
+                                // TaskDialog.Show("found grid: ", cur_name);
                                 if (cur_name == one_of_zone.Value.top) {
                                     cur_bound_box.Add(cur.Curve);
                                 }
