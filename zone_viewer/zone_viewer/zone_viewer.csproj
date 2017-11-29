@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+      None
+    </ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8C97AF73-6596-4291-AEA5-09E5E0B98AB2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>zone_viewer</RootNamespace>
+    <AssemblyName>zone_viewer</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProgramW6432)\Autodesk\Revit 2018\Revit.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProgramW6432)\Autodesk\Revit 2018\Revit.exe</StartProgram>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\Autodesk\Revit\Revit 2018\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\Autodesk\Revit\Revit 2018\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActiveUIDoc.cs" />
+    <Compile Include="App.cs" />
+    <Compile Include="AppDocEvents.cs" />
+    <Compile Include="ColumnSorter.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="EventTrack\Events\ApplicationEvents.cs" />
+    <Compile Include="EventTrack\Events\DocEvents.cs" />
+    <Compile Include="EventTrack\Events\EventsBase.cs" />
+    <Compile Include="EventTrack\Forms\EventsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EventTrack\Forms\EventsForm.designer.cs">
+      <DependentUpon>EventsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GeomUtils.cs" />
+    <Compile Include="Graphics\DwgStream.cs" />
+    <Compile Include="Graphics\GraphicsStream.cs" />
+    <Compile Include="Graphics\GraphicsStreamDwg.cs" />
+    <Compile Include="Graphics\RevitStream.cs" />
+    <Compile Include="HostApp.cs" />
+    <Compile Include="ModelStats\CategoryCount.cs" />
+    <Compile Include="ModelStats\RawObjCount.cs" />
+    <Compile Include="ModelStats\Report.cs" />
+    <Compile Include="ModelStats\SymbolCount.cs" />
+    <Compile Include="Properties\Resources.Designer.cs" />
+    <Compile Include="Snoop\CollectorExts\CollectorExt.cs" />
+    <Compile Include="Snoop\CollectorExts\CollectorExtElement.cs" />
+    <Compile Include="Snoop\CollectorExts\DataTypeInfoHelper.cs" />
+    <Compile Include="Snoop\CollectorExts\ElementMethodsStream.cs" />
+    <Compile Include="Snoop\CollectorExts\ElementPropertiesStream.cs" />
+    <Compile Include="Snoop\CollectorExts\ExtensibleStorageEntityContentStream.cs" />
+    <Compile Include="Snoop\CollectorExts\IElementStream.cs" />
+    <Compile Include="Snoop\CollectorExts\SpatialElementStream.cs" />
+    <Compile Include="Snoop\Collectors\Collector.cs" />
+    <Compile Include="Snoop\Collectors\CollectorEventArgs.cs" />
+    <Compile Include="Snoop\Collectors\CollectorObj.cs" />
+    <Compile Include="Snoop\Collectors\CollectorXmlNode.cs" />
+    <Compile Include="Snoop\Data\Angle.cs" />
+    <Compile Include="Snoop\Data\BindingMap.cs" />
+    <Compile Include="Snoop\Data\Bool.cs" />
+    <Compile Include="Snoop\Data\CategoryNameMap.cs" />
+    <Compile Include="Snoop\Data\CategorySeparator.cs" />
+    <Compile Include="Snoop\Data\ClassSeparator.cs" />
+    <Compile Include="Snoop\Data\Data.cs" />
+    <Compile Include="Snoop\Data\Double.cs" />
+    <Compile Include="Snoop\Data\ElementGeometry.cs" />
+    <Compile Include="Snoop\Data\ElementId.cs" />
+    <Compile Include="Snoop\Data\ElementSet.cs" />
+    <Compile Include="Snoop\Data\EmptyValue.cs" />
+    <Compile Include="Snoop\Data\Enumerable.cs" />
+    <Compile Include="Snoop\Data\Exception.cs" />
+    <Compile Include="Snoop\Data\ExtensibleStorageSeparator.cs" />
+    <Compile Include="Snoop\Data\Int.cs" />
+    <Compile Include="Snoop\Data\MemberSeparator.cs" />
+    <Compile Include="Snoop\Data\Object.cs" />
+    <Compile Include="Snoop\Data\ParameterSet.cs" />
+    <Compile Include="Snoop\Data\String.cs" />
+    <Compile Include="Snoop\Data\Uv.cs" />
+    <Compile Include="Snoop\Data\Xml.cs" />
+    <Compile Include="Snoop\Data\Xyz.cs" />
+    <Compile Include="Snoop\Forms\BindingMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\Categories.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\GenericPropGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\Geometry.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\Objects.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\ObjTreeBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\ParamEnum.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\ParamEnum.Designer.cs" />
+    <Compile Include="Snoop\Forms\ParamEnumSnoop.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Forms\Parameters.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Snoop\Utils.cs" />
+    <Compile Include="TestCmds.cs" />
+    <Compile Include="Xml\Forms\Dom.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\napi-16.png" />
+    <Content Include="Resources\napi-32.png" />
+    <Content Include="Resources\raamac-16.png" />
+    <Content Include="Resources\raamac-32.png" />
+    <Content Include="res\ImageTreeCategory.bmp" />
+    <Content Include="res\ImageTreeClass.bmp" />
+    <Content Include="res\ImageTreeTest.bmp" />
+    <Content Include="res\ImageTreeXmlAttribute.bmp" />
+    <Content Include="res\ImageTreeXmlCdata.bmp" />
+    <Content Include="res\ImageTreeXmlComment.bmp" />
+    <Content Include="res\ImageTreeXmlDeclaration.bmp" />
+    <Content Include="res\ImageTreeXmlDoc.bmp" />
+    <Content Include="res\ImageTreeXmlDocType.bmp" />
+    <Content Include="res\ImageTreeXmlElement.bmp" />
+    <Content Include="res\ImageTreeXmlEntity.bmp" />
+    <Content Include="res\ImageTreeXmlFragment.bmp" />
+    <Content Include="res\ImageTreeXmlProcInstr.bmp" />
+    <Content Include="res\ImageTreeXmlReference.bmp" />
+    <Content Include="res\ImageTreeXmlText.bmp" />
+    <Content Include="res\ImageTreeXmlUnknown.bmp" />
+    <Content Include="res\Toolbar.bmp" />
+    <Content Include="zone_viewer.addin" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="EventTrack\Forms\EventsForm.resx">
+      <DependentUpon>EventsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx" />
+    <EmbeddedResource Include="Snoop\Forms\BindingMap.resx" />
+    <EmbeddedResource Include="Snoop\Forms\Categories.resx" />
+    <EmbeddedResource Include="Snoop\Forms\GenericPropGrid.resx" />
+    <EmbeddedResource Include="Snoop\Forms\Geometry.resx" />
+    <EmbeddedResource Include="Snoop\Forms\Objects.resx" />
+    <EmbeddedResource Include="Snoop\Forms\ObjTreeBase.resx" />
+    <EmbeddedResource Include="Snoop\Forms\ParamEnum.resx" />
+    <EmbeddedResource Include="Snoop\Forms\ParamEnumSnoop.resx" />
+    <EmbeddedResource Include="Snoop\Forms\Parameters.resx" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2018"
+copy "$(ProjectDir)bin\debug\*.dll" "$(AppData)\Autodesk\REVIT\Addins\2018"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterClean">
+    <Delete Files="$(AppData)\Autodesk\REVIT\Addins\2018\zone_viewer.addin" />
+    <Delete Files="$(AppData)\Autodesk\REVIT\Addins\2018\zone_viewer.dll" />
+  </Target>
+</Project>
