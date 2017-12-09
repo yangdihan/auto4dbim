@@ -124,7 +124,6 @@ namespace zone_viewer {
             }
 
             //divide slabs by area
-
             foreach (ElementId s_id in slabs_id) {
                 Floor this_slab = doc.GetElement(s_id) as Floor;
                 ElementId slab_level_id = this_slab.LevelId;
@@ -151,6 +150,10 @@ namespace zone_viewer {
                 HostObject hostObj = doc.GetElement(s_id) as HostObject;
                 Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
                 ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
+                if (bound_box.Count() == 0 && intersectingReferenceIds.Count() == 0) {
+                    continue;
+                }
+
                 using (Transaction t = new Transaction(doc, "Divide Part by Areas")) {
                     t.Start();
                     //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
@@ -195,22 +198,10 @@ namespace zone_viewer {
                     area_plans.Add(area_plan);
                     t.Commit();
                 }
-                //Parameter p = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
-                //using (Transaction t = new Transaction(doc, "Set View Parameter")) {
-                //    t.Start();
-                //    p.Set(0); // 0 = Show Parts, 1 = Show Original, 2 = Show Both
-                //    t.Commit();
-                //}
-                
-
-
             }
             return Result.Succeeded;
         }
-            
 
-            // public static ViewPlan CreateAreaPlan(Document document, ElementId areaSchemeId, ElementId levelId);
-        
     }
 }
  
