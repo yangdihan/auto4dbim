@@ -58,6 +58,7 @@ namespace zone_viewer {
             optionsBtn.AddPushButton(new PushButtonData("API Description", "API Description...", ExecutingAssemblyPath, "zone_viewer.HelloWorld"));
             optionsBtn.AddPushButton(new PushButtonData("View Levels", "Levels...", ExecutingAssemblyPath, "zone_viewer.CmdSnoopDb"));
             optionsBtn.AddPushButton(new PushButtonData("Divide Parts", "Divide Parts...", ExecutingAssemblyPath, "zone_viewer.Divide"));
+            optionsBtn.AddPushButton(new PushButtonData("Create Zones", "Create Zones...", ExecutingAssemblyPath, "zone_viewer.CreateZonePlan"));
             //optionsBtn.AddPushButton(new PushButtonData("Snoop Current Selection...", "Snoop Current Selection...", ExecutingAssemblyPath, "zone_viewer.CmdSnoopModScope"));
             //optionsBtn.AddPushButton(new PushButtonData("Snoop Active View...", "Snoop Active View...", ExecutingAssemblyPath, "zone_viewer.CmdSnoopActiveView"));
             //optionsBtn.AddPushButton(new PushButtonData("Snoop Application...", "Snoop Application...", ExecutingAssemblyPath, "zone_viewer.CmdSnoopApp"));
