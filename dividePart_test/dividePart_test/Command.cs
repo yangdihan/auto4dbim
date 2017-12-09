@@ -60,10 +60,10 @@ namespace dividePart_test {
                 }
             }
 
-            // filter out all levels and grids
+            // filter out all levels and grids and areas
             ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
             ICollection<ElementId> grids = new FilteredElementCollector(doc).OfClass(typeof(Grid)).OfCategory(BuiltInCategory.OST_Grids).ToElementIds();
-
+            ICollection<ElementId> areas = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfCategory(BuiltInCategory.OST_Areas).ToElementIds();
 
             //call create parts on walls/ slabs/ columns collectors
             using (Transaction t = new Transaction(doc, "Create Part")) {
@@ -122,104 +122,143 @@ namespace dividePart_test {
                 }
             }
 
+            //divide slabs by area
 
-
-
-            // divide slabs
             foreach (ElementId s_id in slabs_id) {
                 Floor this_slab = doc.GetElement(s_id) as Floor;
                 ElementId slab_level_id = this_slab.LevelId;
                 string slab_level = doc.GetElement(slab_level_id).Name;
-                foreach (var f in res.Levels) {
-                    if (f.Key == slab_level) {
-                        //TaskDialog.Show("found level name: ", slab_level);
-                        // ready to divide
-                        ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
+                ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
+                BoundingBoxXYZ bbox = doc.GetElement(s_id).get_BoundingBox(view);
+                double slab_top_face_z = bbox.Max.Z;
 
-                        // find z of slab's top face
-                        BoundingBoxXYZ bbox = doc.GetElement(s_id).get_BoundingBox(view);
-                        double slab_top_face_z = bbox.Max.Z;
-                        // all grids elementid are now in grids
-                        IList<Curve> curve_trim = new List<Curve>();
-
-                        // loop over all zones
-                        foreach (var one_of_zone in f.Value.Zones) {
-                            //TaskDialog.Show("zone name: ", one_of_zone.Key);
-                            // find four bounding curve for one zone, not sure if itersection is counted to trim curves
-                            IList<Curve> cur_bound_box = new List<Curve>();
-
-                            // not yet used, need for later "mark" feature
-                            string cur_zone_name = one_of_zone.Key;
-
-                            // loop over all grids
-                            foreach (ElementId grid_id in grids) {
-
-                                Grid cur = doc.GetElement(grid_id) as Grid;
-                                string cur_name = cur.Name;
-                                // TaskDialog.Show("found grid: ", cur_name);
-                                if (cur_name == one_of_zone.Value.top) {
-                                    cur_bound_box.Add(cur.Curve);
-                                }
-                                if (cur_name == one_of_zone.Value.bottom) {
-                                    cur_bound_box.Add(cur.Curve);
-                                }
-                                if (cur_name == one_of_zone.Value.left) {
-                                    cur_bound_box.Add(cur.Curve);
-                                }
-                                if (cur_name == one_of_zone.Value.right) {
-                                    cur_bound_box.Add(cur.Curve);
-                                }
-
+                IList<Curve> bound_box = new List<Curve>();
+                foreach (ElementId area_id in areas) {
+                    Area cur = doc.GetElement(area_id) as Area;
+                    string area_level = cur.Level.Name;
+                    if (area_level == slab_level) {
+                        SpatialElementBoundaryOptions opt = new SpatialElementBoundaryOptions();
+                        var boundaries = cur.GetBoundarySegments(opt);
+                        foreach (var bl in boundaries) {
+                            foreach (var s in bl) {
+                                Curve c = s.GetCurve();
+                                bound_box.Add(c);
                             }
-                            // now four bounding curve objects are added to cur_bound_box list
-                            // try to find XYZ for them:
-                            Curve top_ = cur_bound_box[0];
-                            Curve bottom_ = cur_bound_box[1];
-                            Curve left_ = cur_bound_box[2];
-                            Curve right_ = cur_bound_box[3];
-
-                            double topleft_x = left_.GetEndPoint(0).X;
-                            double topleft_y = top_.GetEndPoint(0).Y;
-
-                            XYZ topleft = new XYZ(topleft_x, topleft_y, slab_top_face_z);
-
-                            double topright_x = right_.GetEndPoint(0).X;
-                            double topright_y = top_.GetEndPoint(0).Y;
-                            XYZ topright = new XYZ(topright_x, topright_y, slab_top_face_z);
-
-                            double botleft_x = left_.GetEndPoint(0).X;
-                            double botleft_y = bottom_.GetEndPoint(0).Y;
-                            XYZ botleft = new XYZ(botleft_x, botleft_y, slab_top_face_z);
-
-                            double botright_x = right_.GetEndPoint(0).X;
-                            double botright_y = bottom_.GetEndPoint(0).Y;
-                            XYZ botright = new XYZ(botright_x, botright_y, slab_top_face_z);
-
-                            Curve top_trim = Line.CreateBound(topleft, topright);
-                            curve_trim.Add(top_trim);
-                            Curve bot_trim = Line.CreateBound(botleft, botright);
-                            curve_trim.Add(bot_trim);
-                            Curve left_trim = Line.CreateBound(topleft, botleft);
-                            curve_trim.Add(left_trim);
-                            Curve right_trim = Line.CreateBound(topright, botright);
-                            curve_trim.Add(right_trim);
                         }
-
-                        HostObject hostObj = doc.GetElement(s_id) as HostObject;
-                        Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
-                        ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
-                        using (Transaction t = new Transaction(doc, "Divide Part at Grids")) {
-                            t.Start();
-                            //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
-                            SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
-                            //sketchPlaneTransaction.Commit();
-                            PartUtils.DivideParts(doc, partsList, intersectingReferenceIds, curve_trim, grid_sketchPlane.Id);
-                            t.Commit();
-                        }
-
                     }
                 }
+                HostObject hostObj = doc.GetElement(s_id) as HostObject;
+                Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
+                ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
+                using (Transaction t = new Transaction(doc, "Divide Part by Areas")) {
+                    t.Start();
+                    //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
+                    SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
+                    //sketchPlaneTransaction.Commit();
+                    PartUtils.DivideParts(doc, partsList, intersectingReferenceIds, bound_box, grid_sketchPlane.Id);
+                    t.Commit();
+                }
             }
+
+
+
+
+
+            // divide slabs
+            //foreach (ElementId s_id in slabs_id) {
+            //    Floor this_slab = doc.GetElement(s_id) as Floor;
+            //    ElementId slab_level_id = this_slab.LevelId;
+            //    string slab_level = doc.GetElement(slab_level_id).Name;
+            //    foreach (var f in res.Levels) {
+            //        if (f.Key == slab_level) {
+            //            //TaskDialog.Show("found level name: ", slab_level);
+            //            // ready to divide
+            //            ICollection<ElementId> partsList = PartUtils.GetAssociatedParts(doc, s_id, true, true);
+
+            //            // find z of slab's top face
+            //            BoundingBoxXYZ bbox = doc.GetElement(s_id).get_BoundingBox(view);
+            //            double slab_top_face_z = bbox.Max.Z;
+            //            // all grids elementid are now in grids
+            //            IList<Curve> curve_trim = new List<Curve>();
+
+            //            // loop over all zones
+            //            foreach (var one_of_zone in f.Value.Zones) {
+            //                //TaskDialog.Show("zone name: ", one_of_zone.Key);
+            //                // find four bounding curve for one zone, not sure if itersection is counted to trim curves
+            //                IList<Curve> cur_bound_box = new List<Curve>();
+
+            //                // not yet used, need for later "mark" feature
+            //                string cur_zone_name = one_of_zone.Key;
+
+            //                // loop over all grids
+            //                foreach (ElementId grid_id in grids) {
+
+            //                    Grid cur = doc.GetElement(grid_id) as Grid;
+            //                    string cur_name = cur.Name;
+            //                    // TaskDialog.Show("found grid: ", cur_name);
+            //                    if (cur_name == one_of_zone.Value.top) {
+            //                        cur_bound_box.Add(cur.Curve);
+            //                    }
+            //                    if (cur_name == one_of_zone.Value.bottom) {
+            //                        cur_bound_box.Add(cur.Curve);
+            //                    }
+            //                    if (cur_name == one_of_zone.Value.left) {
+            //                        cur_bound_box.Add(cur.Curve);
+            //                    }
+            //                    if (cur_name == one_of_zone.Value.right) {
+            //                        cur_bound_box.Add(cur.Curve);
+            //                    }
+
+            //                }
+            //                // now four bounding curve objects are added to cur_bound_box list
+            //                // try to find XYZ for them:
+            //                Curve top_ = cur_bound_box[0];
+            //                Curve bottom_ = cur_bound_box[1];
+            //                Curve left_ = cur_bound_box[2];
+            //                Curve right_ = cur_bound_box[3];
+
+            //                double topleft_x = left_.GetEndPoint(0).X;
+            //                double topleft_y = top_.GetEndPoint(0).Y;
+
+            //                XYZ topleft = new XYZ(topleft_x, topleft_y, slab_top_face_z);
+
+            //                double topright_x = right_.GetEndPoint(0).X;
+            //                double topright_y = top_.GetEndPoint(0).Y;
+            //                XYZ topright = new XYZ(topright_x, topright_y, slab_top_face_z);
+
+            //                double botleft_x = left_.GetEndPoint(0).X;
+            //                double botleft_y = bottom_.GetEndPoint(0).Y;
+            //                XYZ botleft = new XYZ(botleft_x, botleft_y, slab_top_face_z);
+
+            //                double botright_x = right_.GetEndPoint(0).X;
+            //                double botright_y = bottom_.GetEndPoint(0).Y;
+            //                XYZ botright = new XYZ(botright_x, botright_y, slab_top_face_z);
+
+            //                Curve top_trim = Line.CreateBound(topleft, topright);
+            //                curve_trim.Add(top_trim);
+            //                Curve bot_trim = Line.CreateBound(botleft, botright);
+            //                curve_trim.Add(bot_trim);
+            //                Curve left_trim = Line.CreateBound(topleft, botleft);
+            //                curve_trim.Add(left_trim);
+            //                Curve right_trim = Line.CreateBound(topright, botright);
+            //                curve_trim.Add(right_trim);
+            //            }
+
+            //            HostObject hostObj = doc.GetElement(s_id) as HostObject;
+            //            Reference r = HostObjectUtils.GetTopFaces(hostObj).First();
+            //            ICollection<ElementId> intersectingReferenceIds = new List<ElementId>();
+            //            using (Transaction t = new Transaction(doc, "Divide Part at Grids")) {
+            //                t.Start();
+            //                //Transaction sketchPlaneTransaction = new Transaction(doc, "Create Sketch Plane");
+            //                SketchPlane grid_sketchPlane = SketchPlane.Create(doc, r);
+            //                //sketchPlaneTransaction.Commit();
+            //                PartUtils.DivideParts(doc, partsList, intersectingReferenceIds, curve_trim, grid_sketchPlane.Id);
+            //                t.Commit();
+            //            }
+
+            //        }
+            //    }
+            //}
             // Set the view's "Parts Visibility" parameter so that parts are shown
             Parameter p = doc.ActiveView.get_Parameter(BuiltInParameter.VIEW_PARTS_VISIBILITY);
             using (Transaction t = new Transaction(doc, "Set View Parameter")) {
