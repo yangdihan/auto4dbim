@@ -192,7 +192,7 @@ namespace zone_viewer {
             ICollection<ElementId> area_scheme = new FilteredElementCollector(doc).OfClass(typeof(AreaScheme)).OfCategory(BuiltInCategory.OST_AreaSchemes).ToElementIds();
             IList<ViewPlan> area_plans = new List<ViewPlan>();
             foreach (ElementId l_id in levels) {
-                using (Transaction t = new Transaction(doc, "Set View Parameter")) {
+                using (Transaction t = new Transaction(doc, "Create Zone Plans")) {
                     t.Start();
                     ViewPlan area_plan = ViewPlan.CreateAreaPlan(doc, area_scheme.First(), l_id);
                     area_plans.Add(area_plan);
@@ -203,5 +203,90 @@ namespace zone_viewer {
         }
 
     }
+
+
+
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class DivideBox : IExternalCommand {
+        public Result Execute(ExternalCommandData cmdData, ref string msg, ElementSet elems) {
+            UIApplication uiapp = cmdData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            View view = doc.ActiveView;
+
+            ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
+            IList<ElementId> levels_id = new List<ElementId>();
+            IList<double> elevations = new List<double>();
+            foreach (ElementId level_id in levels) {
+                levels_id.Add(level_id);
+                Level this_level = doc.GetElement(level_id) as Level;
+                elevations.Add(this_level.Elevation);
+            }
+            ICollection<ElementId> areas = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfCategory(BuiltInCategory.OST_Areas).ToElementIds();
+            ICollection<ElementId> area_planViews = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).ToElementIds();
+            ICollection<ElementId> area_schemes = new FilteredElementCollector(doc).OfClass(typeof(AreaScheme)).OfCategory(BuiltInCategory.OST_AreaSchemes).ToElementIds();
+            AreaScheme rentable = doc.GetElement(area_schemes.First()) as AreaScheme;
+            foreach (ElementId area_id in areas) {
+                Area area_cur = doc.GetElement(area_id) as Area;
+                Level area_level = area_cur.Level;
+                double right, left, front, back, top, bot;
+                BoundingBoxXYZ section_bound = new BoundingBoxXYZ();
+                foreach (ElementId viewPlan_id in area_planViews) {
+                    ViewPlan view_plan = doc.GetElement(viewPlan_id) as ViewPlan;
+                    Level plan_level = doc.GetElement(view_plan.LevelId) as Level;
+                    AreaScheme plan_scheme = view_plan.AreaScheme;
+                    if (view_plan.ViewName == area_level.Name && view_plan.ViewType.ToString() == "AreaPlan") {
+                        BoundingBoxXYZ area_bound = area_cur.get_BoundingBox(view_plan);
+                        front = area_bound.Max.Y;
+                        right = area_bound.Max.X;
+                        back = area_bound.Min.Y;
+                        left = area_bound.Min.X;
+                        bot = area_level.Elevation;
+                        top = 0;
+                        double level_height;
+                        foreach (ElementId level_id in levels_id) {
+                            Level this_level = doc.GetElement(level_id) as Level;
+                            if (this_level.Name == area_level.Name) {
+                                int cur_idx = levels_id.IndexOf(level_id);
+                                if (cur_idx+1 < levels_id.Count) {
+                                    level_height = elevations.ElementAt(cur_idx + 1) - elevations.ElementAt(cur_idx);
+                                } else {
+                                    level_height = 10;
+                                }
+                                top = bot + level_height;
+                                break;
+                            }
+                        }
+                        section_bound.Min = new XYZ(left, back, bot-1);
+                        section_bound.Max = new XYZ(right, front, top-1);
+                        View3D view3d = doc.ActiveView as View3D;
+
+                        using (Transaction t = new Transaction(doc, "Set View")) {
+                            t.Start();
+                            view3d.SetSectionBox(section_bound);
+                            t.Commit();
+                        }
+                        NavisworksExportOptions opt = new NavisworksExportOptions();
+                        opt.DivideFileIntoLevels = true;
+                        opt.ExportElementIds = true;
+                        opt.ExportParts = true;
+                        opt.ExportRoomAsAttribute = false;
+                        opt.ExportRoomGeometry = false;
+                        opt.ExportScope = NavisworksExportScope.View;
+                        opt.ViewId = view3d.Id;
+                        string folder_name = "D:\\Documents\\Revit Model\\";
+                        TaskDialog.Show("folder: ", folder_name);
+                        string file_name = area_level.Name + "_" + area_cur.Name;
+                        doc.Export(folder_name, file_name, opt);
+                        TaskDialog.Show("folder: ", "reach");
+                    }
+                }
+            }
+            return Result.Succeeded;
+        }
+        
+    }
 }
- 
+
