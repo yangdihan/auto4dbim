@@ -58,138 +58,19 @@
   <ItemGroup>
     <Compile Include="ActiveUIDoc.cs" />
     <Compile Include="App.cs" />
-    <Compile Include="AppDocEvents.cs" />
-    <Compile Include="ColumnSorter.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="EventTrack\Events\ApplicationEvents.cs" />
-    <Compile Include="EventTrack\Events\DocEvents.cs" />
-    <Compile Include="EventTrack\Events\EventsBase.cs" />
-    <Compile Include="EventTrack\Forms\EventsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="EventTrack\Forms\EventsForm.designer.cs">
-      <DependentUpon>EventsForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GeomUtils.cs" />
-    <Compile Include="Graphics\DwgStream.cs" />
-    <Compile Include="Graphics\GraphicsStream.cs" />
-    <Compile Include="Graphics\GraphicsStreamDwg.cs" />
-    <Compile Include="Graphics\RevitStream.cs" />
-    <Compile Include="HostApp.cs" />
-    <Compile Include="ModelStats\CategoryCount.cs" />
-    <Compile Include="ModelStats\RawObjCount.cs" />
-    <Compile Include="ModelStats\Report.cs" />
-    <Compile Include="ModelStats\SymbolCount.cs" />
-    <Compile Include="Properties\Resources.Designer.cs" />
-    <Compile Include="Snoop\CollectorExts\CollectorExt.cs" />
-    <Compile Include="Snoop\CollectorExts\CollectorExtElement.cs" />
-    <Compile Include="Snoop\CollectorExts\DataTypeInfoHelper.cs" />
-    <Compile Include="Snoop\CollectorExts\ElementMethodsStream.cs" />
-    <Compile Include="Snoop\CollectorExts\ElementPropertiesStream.cs" />
-    <Compile Include="Snoop\CollectorExts\ExtensibleStorageEntityContentStream.cs" />
-    <Compile Include="Snoop\CollectorExts\IElementStream.cs" />
-    <Compile Include="Snoop\CollectorExts\SpatialElementStream.cs" />
-    <Compile Include="Snoop\Collectors\Collector.cs" />
-    <Compile Include="Snoop\Collectors\CollectorEventArgs.cs" />
-    <Compile Include="Snoop\Collectors\CollectorObj.cs" />
-    <Compile Include="Snoop\Collectors\CollectorXmlNode.cs" />
-    <Compile Include="Snoop\Data\Angle.cs" />
-    <Compile Include="Snoop\Data\BindingMap.cs" />
-    <Compile Include="Snoop\Data\Bool.cs" />
-    <Compile Include="Snoop\Data\CategoryNameMap.cs" />
-    <Compile Include="Snoop\Data\CategorySeparator.cs" />
-    <Compile Include="Snoop\Data\ClassSeparator.cs" />
-    <Compile Include="Snoop\Data\Data.cs" />
-    <Compile Include="Snoop\Data\Double.cs" />
-    <Compile Include="Snoop\Data\ElementGeometry.cs" />
-    <Compile Include="Snoop\Data\ElementId.cs" />
-    <Compile Include="Snoop\Data\ElementSet.cs" />
-    <Compile Include="Snoop\Data\EmptyValue.cs" />
-    <Compile Include="Snoop\Data\Enumerable.cs" />
-    <Compile Include="Snoop\Data\Exception.cs" />
-    <Compile Include="Snoop\Data\ExtensibleStorageSeparator.cs" />
-    <Compile Include="Snoop\Data\Int.cs" />
-    <Compile Include="Snoop\Data\MemberSeparator.cs" />
-    <Compile Include="Snoop\Data\Object.cs" />
-    <Compile Include="Snoop\Data\ParameterSet.cs" />
-    <Compile Include="Snoop\Data\String.cs" />
-    <Compile Include="Snoop\Data\Uv.cs" />
-    <Compile Include="Snoop\Data\Xml.cs" />
-    <Compile Include="Snoop\Data\Xyz.cs" />
-    <Compile Include="Snoop\Forms\BindingMap.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\Categories.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\GenericPropGrid.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\Geometry.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\Objects.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\ObjTreeBase.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\ParamEnum.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\ParamEnum.Designer.cs" />
-    <Compile Include="Snoop\Forms\ParamEnumSnoop.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Forms\Parameters.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Snoop\Utils.cs" />
-    <Compile Include="TestCmds.cs" />
-    <Compile Include="Xml\Forms\Dom.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="Divide.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\napi-16.png" />
     <Content Include="Resources\napi-32.png" />
     <Content Include="Resources\raamac-16.png" />
     <Content Include="Resources\raamac-32.png" />
-    <Content Include="res\ImageTreeCategory.bmp" />
-    <Content Include="res\ImageTreeClass.bmp" />
-    <Content Include="res\ImageTreeTest.bmp" />
-    <Content Include="res\ImageTreeXmlAttribute.bmp" />
-    <Content Include="res\ImageTreeXmlCdata.bmp" />
-    <Content Include="res\ImageTreeXmlComment.bmp" />
-    <Content Include="res\ImageTreeXmlDeclaration.bmp" />
-    <Content Include="res\ImageTreeXmlDoc.bmp" />
-    <Content Include="res\ImageTreeXmlDocType.bmp" />
-    <Content Include="res\ImageTreeXmlElement.bmp" />
-    <Content Include="res\ImageTreeXmlEntity.bmp" />
-    <Content Include="res\ImageTreeXmlFragment.bmp" />
-    <Content Include="res\ImageTreeXmlProcInstr.bmp" />
-    <Content Include="res\ImageTreeXmlReference.bmp" />
-    <Content Include="res\ImageTreeXmlText.bmp" />
-    <Content Include="res\ImageTreeXmlUnknown.bmp" />
-    <Content Include="res\Toolbar.bmp" />
     <Content Include="zone_viewer.addin" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="EventTrack\Forms\EventsForm.resx">
-      <DependentUpon>EventsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx" />
-    <EmbeddedResource Include="Snoop\Forms\BindingMap.resx" />
-    <EmbeddedResource Include="Snoop\Forms\Categories.resx" />
-    <EmbeddedResource Include="Snoop\Forms\GenericPropGrid.resx" />
-    <EmbeddedResource Include="Snoop\Forms\Geometry.resx" />
-    <EmbeddedResource Include="Snoop\Forms\Objects.resx" />
-    <EmbeddedResource Include="Snoop\Forms\ObjTreeBase.resx" />
-    <EmbeddedResource Include="Snoop\Forms\ParamEnum.resx" />
-    <EmbeddedResource Include="Snoop\Forms\ParamEnumSnoop.resx" />
-    <EmbeddedResource Include="Snoop\Forms\Parameters.resx" />
+    <Folder Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2018"

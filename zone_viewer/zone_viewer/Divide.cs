@@ -206,6 +206,8 @@ namespace zone_viewer {
 
 
 
+
+
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class DivideBox : IExternalCommand {
@@ -216,6 +218,7 @@ namespace zone_viewer {
             Document doc = uidoc.Document;
             View view = doc.ActiveView;
 
+            // prepare levels, areas, views
             ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
             IList<ElementId> levels_id = new List<ElementId>();
             IList<double> elevations = new List<double>();
@@ -228,6 +231,8 @@ namespace zone_viewer {
             ICollection<ElementId> area_planViews = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).ToElementIds();
             ICollection<ElementId> area_schemes = new FilteredElementCollector(doc).OfClass(typeof(AreaScheme)).OfCategory(BuiltInCategory.OST_AreaSchemes).ToElementIds();
             AreaScheme rentable = doc.GetElement(area_schemes.First()) as AreaScheme;
+
+            // loop throu each area
             foreach (ElementId area_id in areas) {
                 Area area_cur = doc.GetElement(area_id) as Area;
                 Level area_level = area_cur.Level;
@@ -237,6 +242,7 @@ namespace zone_viewer {
                     ViewPlan view_plan = doc.GetElement(viewPlan_id) as ViewPlan;
                     Level plan_level = doc.GetElement(view_plan.LevelId) as Level;
                     AreaScheme plan_scheme = view_plan.AreaScheme;
+                    // find the view that contains area and get the bbox
                     if (view_plan.ViewName == area_level.Name && view_plan.ViewType.ToString() == "AreaPlan") {
                         BoundingBoxXYZ area_bound = area_cur.get_BoundingBox(view_plan);
                         front = area_bound.Max.Y;
@@ -263,6 +269,7 @@ namespace zone_viewer {
                         section_bound.Max = new XYZ(right, front, top-1);
                         View3D view3d = doc.ActiveView as View3D;
 
+                        // set section box and export
                         using (Transaction t = new Transaction(doc, "Set View")) {
                             t.Start();
                             view3d.SetSectionBox(section_bound);
@@ -277,16 +284,13 @@ namespace zone_viewer {
                         opt.ExportScope = NavisworksExportScope.View;
                         opt.ViewId = view3d.Id;
                         string folder_name = "D:\\Documents\\Revit Model\\";
-                        TaskDialog.Show("folder: ", folder_name);
                         string file_name = area_level.Name + "_" + area_cur.Name;
                         doc.Export(folder_name, file_name, opt);
-                        TaskDialog.Show("folder: ", "reach");
                     }
                 }
             }
             return Result.Succeeded;
         }
-        
     }
 }
 
