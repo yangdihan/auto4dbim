@@ -55,10 +55,10 @@ namespace zone_viewer {
 
             optionsBtn.LargeImage = new BitmapImage(new Uri(@"D:\Documents\auto4dbim\zone_viewer\zone_viewer\Resources\raamac-32.png"));
 
-            optionsBtn.AddPushButton(new PushButtonData("API Description", "API Description...", ExecutingAssemblyPath, "zone_viewer.HelloWorld"));
+            optionsBtn.AddPushButton(new PushButtonData("API Description", "API Description", ExecutingAssemblyPath, "zone_viewer.HelloWorld"));
            
-            optionsBtn.AddPushButton(new PushButtonData("Create Zones", "Create Zones...", ExecutingAssemblyPath, "zone_viewer.CreateZonePlan"));
-            optionsBtn.AddPushButton(new PushButtonData("Divide Box", "Divide Box...", ExecutingAssemblyPath, "zone_viewer.DivideBox"));
+            optionsBtn.AddPushButton(new PushButtonData("Create Zones", "Create Zones", ExecutingAssemblyPath, "zone_viewer.CreateZonePlan"));
+            optionsBtn.AddPushButton(new PushButtonData("RAAMAXporter", "RAAMAXporter", ExecutingAssemblyPath, "zone_viewer.DivideBox"));
           
         }
 

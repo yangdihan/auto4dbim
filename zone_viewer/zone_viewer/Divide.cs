@@ -175,7 +175,14 @@ namespace zone_viewer {
         }
     }
 
-
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class HelloWorld : IExternalCommand {
+        public Result Execute(ExternalCommandData cmdData, ref string msg, ElementSet elems) {
+            TaskDialog.Show("API description: ", "Click 'Create Zones' to define Zones in corresponding AreaPlans.\nClick 'RAAMAXporter' to export Zones as NWC files.");
+            return Result.Succeeded;
+        }
+    }
 
 
     [Transaction(TransactionMode.Manual)]
@@ -218,15 +225,25 @@ namespace zone_viewer {
             Document doc = uidoc.Document;
             View view = doc.ActiveView;
 
-            // prepare levels, areas, views
+            // prepare levels, areas, views, thickness
             ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
+            ICollection<ElementId> slabs = new FilteredElementCollector(doc).OfClass(typeof(Floor)).OfCategory(BuiltInCategory.OST_Floors).ToElementIds();
             IList<ElementId> levels_id = new List<ElementId>();
             IList<double> elevations = new List<double>();
+            IList<double> slabs_thick = new List<double>();
             foreach (ElementId level_id in levels) {
                 levels_id.Add(level_id);
                 Level this_level = doc.GetElement(level_id) as Level;
                 elevations.Add(this_level.Elevation);
+                foreach (ElementId slab_id in slabs) {
+                    Floor this_slab = doc.GetElement(slab_id) as Floor;
+                    Level slab_level = doc.GetElement(this_slab.LevelId) as Level;
+                    if (slab_level.Name == this_level.Name) {
+                        slabs_thick.Add(this_slab.get_BoundingBox(null).Max.Z - this_slab.get_BoundingBox(null).Min.Z);
+                    }
+                }
             }
+            
             ICollection<ElementId> areas = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfCategory(BuiltInCategory.OST_Areas).ToElementIds();
             ICollection<ElementId> area_planViews = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).ToElementIds();
             ICollection<ElementId> area_schemes = new FilteredElementCollector(doc).OfClass(typeof(AreaScheme)).OfCategory(BuiltInCategory.OST_AreaSchemes).ToElementIds();
@@ -252,6 +269,8 @@ namespace zone_viewer {
                         bot = area_level.Elevation;
                         top = 0;
                         double level_height;
+                        double thick_low = 0;
+                        double thick_high = 0;
                         foreach (ElementId level_id in levels_id) {
                             Level this_level = doc.GetElement(level_id) as Level;
                             if (this_level.Name == area_level.Name) {
@@ -261,12 +280,19 @@ namespace zone_viewer {
                                 } else {
                                     level_height = 10;
                                 }
+                                if (cur_idx+1 < slabs_thick.Count) {
+                                    thick_low = slabs_thick.ElementAt(cur_idx);
+                                    thick_high = slabs_thick.ElementAt(cur_idx + 1);
+                                } else {
+                                    thick_low = slabs_thick.ElementAt(cur_idx);
+                                    thick_high = 0;
+                                }
                                 top = bot + level_height;
                                 break;
                             }
                         }
-                        section_bound.Min = new XYZ(left, back, bot-1);
-                        section_bound.Max = new XYZ(right, front, top-1);
+                        section_bound.Min = new XYZ(left, back, bot - thick_low);
+                        section_bound.Max = new XYZ(right, front, top - thick_high);
                         View3D view3d = doc.ActiveView as View3D;
 
                         // set section box and export
@@ -289,6 +315,13 @@ namespace zone_viewer {
                     }
                 }
             }
+            using (Transaction t = new Transaction(doc, "Reset View")) {
+                t.Start();
+                View3D current_view = doc.ActiveView as View3D;
+                current_view.IsSectionBoxActive = false;
+                t.Commit();
+            }
+            
             return Result.Succeeded;
         }
     }
