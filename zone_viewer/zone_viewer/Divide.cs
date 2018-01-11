@@ -218,6 +218,7 @@ namespace zone_viewer {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class DivideBox : IExternalCommand {
+
         public Result Execute(ExternalCommandData cmdData, ref string msg, ElementSet elems) {
             UIApplication uiapp = cmdData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
@@ -278,7 +279,7 @@ namespace zone_viewer {
                                 if (cur_idx+1 < levels_id.Count) {
                                     level_height = elevations.ElementAt(cur_idx + 1) - elevations.ElementAt(cur_idx);
                                 } else {
-                                    level_height = 10;
+                                    level_height = 100;
                                 }
                                 if (cur_idx+1 < slabs_thick.Count) {
                                     thick_low = slabs_thick.ElementAt(cur_idx);
@@ -301,6 +302,7 @@ namespace zone_viewer {
                             view3d.SetSectionBox(section_bound);
                             t.Commit();
                         }
+
                         NavisworksExportOptions opt = new NavisworksExportOptions();
                         opt.DivideFileIntoLevels = true;
                         opt.ExportElementIds = true;
@@ -310,8 +312,66 @@ namespace zone_viewer {
                         opt.ExportScope = NavisworksExportScope.View;
                         opt.ViewId = view3d.Id;
                         string folder_name = "D:\\Documents\\Revit Model\\";
-                        string file_name = area_level.Name + "_" + area_cur.Name;
-                        doc.Export(folder_name, file_name, opt);
+
+                        // structure division
+                        FilteredElementCollector slab_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Floor), false));
+                        FilteredElementCollector roof_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(FootPrintRoof), false));
+                        FilteredElementCollector wallFoundation_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(WallFoundation), false));
+                        FilteredElementCollector foundation_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralFoundation, false));
+                        FilteredElementCollector column_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralColumns, false));
+                        FilteredElementCollector frame_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralFraming, false));
+                        FilteredElementCollector truss_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralTruss, false));
+                        FilteredElementCollector massWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_MassWallsAll, false));
+                        slab_filter.UnionWith(roof_filter).UnionWith(wallFoundation_filter).UnionWith(foundation_filter).UnionWith(column_filter).UnionWith(frame_filter).UnionWith(truss_filter).UnionWith(massWall_filter);
+                        using (Transaction t = new Transaction(doc, "Filter Element")) {
+                            t.Start();
+                            view3d.IsolateElementsTemporary(slab_filter.ToElementIds());
+                            t.Commit();
+                        }
+                        string file_name_structure = area_level.Name + "_" + area_cur.Name + "_structure";
+                        doc.Export(folder_name, file_name_structure, opt);
+                        using (Transaction t = new Transaction(doc, "Reset View")) {
+                            t.Start();
+                            View3D current_view = doc.ActiveView as View3D;
+                            current_view.TemporaryViewModes.DeactivateAllModes();
+                            t.Commit();
+                        }
+
+
+                        // architecture model
+                        FilteredElementCollector wall_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Wall), false));
+                        FilteredElementCollector wallType_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(WallType), false));
+                        FilteredElementCollector ceiling_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Ceiling), false));
+                        FilteredElementCollector curtainSys_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(CurtainSystem), false));
+                        FilteredElementCollector archiFloor_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(CeilingAndFloor), false));
+                        FilteredElementCollector window_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_Windows, false));
+                        FilteredElementCollector door_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_Doors, false));
+                        FilteredElementCollector stackWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StackedWalls, false));
+                        FilteredElementCollector curtainWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGrids, false));
+                        FilteredElementCollector CurtainGridsRoof_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsRoof, false));
+                        FilteredElementCollector CurtainGridsSystem_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsSystem, false));
+                        FilteredElementCollector CurtainGridsWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsWall, false));
+                        FilteredElementCollector CurtainWallMullions_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallMullions, false));
+                        FilteredElementCollector CurtainWallPanels_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallPanels, false));
+                        wall_filter.UnionWith(ceiling_filter).UnionWith(wallType_filter).UnionWith(curtainSys_filter).UnionWith(archiFloor_filter).UnionWith(window_filter).UnionWith(door_filter).UnionWith(stackWall_filter).UnionWith(curtainWall_filter).UnionWith(CurtainGridsRoof_filter).UnionWith(CurtainGridsSystem_filter).UnionWith(CurtainGridsWall_filter).UnionWith(CurtainWallMullions_filter).UnionWith(CurtainWallPanels_filter);
+                        using (Transaction t = new Transaction(doc, "Filter Element")) {
+                            t.Start();
+                            view3d.IsolateElementsTemporary(wall_filter.ToElementIds());
+                            t.Commit();
+                        }
+                        string file_name_archi = area_level.Name + "_" + area_cur.Name + "_architecture";
+                        doc.Export(folder_name, file_name_archi, opt);
+                        using (Transaction t = new Transaction(doc, "Reset View")) {
+                            t.Start();
+                            View3D current_view = doc.ActiveView as View3D;
+                            current_view.TemporaryViewModes.DeactivateAllModes();
+                            t.Commit();
+                        }
+
+                        // MEP to be done
+
+
+
                     }
                 }
             }
@@ -319,6 +379,7 @@ namespace zone_viewer {
                 t.Start();
                 View3D current_view = doc.ActiveView as View3D;
                 current_view.IsSectionBoxActive = false;
+                //current_view.TemporaryViewModes.DeactivateAllModes();
                 t.Commit();
             }
             
