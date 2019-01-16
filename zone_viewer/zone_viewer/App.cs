@@ -51,15 +51,16 @@ namespace zone_viewer {
 
             // Add Icons to main zone_viewer Menu
 
-            optionsBtn.Image = new BitmapImage(new Uri(@"D:\Documents\auto4dbim\zone_viewer\zone_viewer\Resources\raamac-16.png"));
+            optionsBtn.Image = new BitmapImage(new Uri(@"C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\Resources\hbi_16.png"));
 
-            optionsBtn.LargeImage = new BitmapImage(new Uri(@"D:\Documents\auto4dbim\zone_viewer\zone_viewer\Resources\raamac-32.png"));
+            optionsBtn.LargeImage = new BitmapImage(new Uri(@"C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\Resources\hbi_32.png"));
 
             optionsBtn.AddPushButton(new PushButtonData("API Description", "API Description", ExecutingAssemblyPath, "zone_viewer.HelloWorld"));
            
-            optionsBtn.AddPushButton(new PushButtonData("Create Zones", "Create Zones", ExecutingAssemblyPath, "zone_viewer.CreateZonePlan"));
-            optionsBtn.AddPushButton(new PushButtonData("RAAMAXporter", "RAAMAXporter", ExecutingAssemblyPath, "zone_viewer.DivideBox"));
-          
+            optionsBtn.AddPushButton(new PushButtonData("Define Zones", "Define Zones", ExecutingAssemblyPath, "zone_viewer.CreateZonePlan"));
+            optionsBtn.AddPushButton(new PushButtonData("Export Zones", "Export Zones", ExecutingAssemblyPath, "zone_viewer.DivideBox"));
+            optionsBtn.AddPushButton(new PushButtonData("Export Rooms", "Export Rooms", ExecutingAssemblyPath, "zone_viewer.DivideRoom"));
+
         }
 
         static BitmapSource GetEmbeddedImage(string name) {

@@ -2,19 +2,19 @@
 <RevitAddIns>
   <AddIn Type="Command">
     <Text>Command zone_viewer</Text>
-    <Description>Some description for zone_viewer</Description>
-    <Assembly>zone_viewer.dll</Assembly>
+    <Description>zone_viewer commands</Description>
+    <Assembly>C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\bin\Debug\zone_viewer.dll</Assembly>
     <FullClassName>zone_viewer.Command</FullClassName>
     <ClientId>1701a0e9-9881-49a7-999a-8047a474beb6</ClientId>
-    <VendorId>com.typepad.thebuildingcoder</VendorId>
-    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+    <VendorId>yangdihanHBI</VendorId>
+    <VendorDescription>Dihan Yang, https://github.com/yangdihan/auto4dbim </VendorDescription>
   </AddIn>
   <AddIn Type="Application">
     <Name>Application zone_viewer</Name>
-    <Assembly>zone_viewer.dll</Assembly>
+    <Assembly>C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\bin\Debug\zone_viewer.dll</Assembly>
     <FullClassName>zone_viewer.App</FullClassName>
     <ClientId>38151379-bf55-41c3-8bb5-ec8a4e317f52</ClientId>
-    <VendorId>com.typepad.thebuildingcoder</VendorId>
-    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+    <VendorId>yangdihanHBI</VendorId>
+    <VendorDescription>Dihan Yang, https://github.com/yangdihan/auto4dbim </VendorDescription>
   </AddIn>
 </RevitAddIns>

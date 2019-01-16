@@ -1,0 +1,5 @@
+C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\bin\Debug\zone_viewer.dll
+C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\bin\Debug\zone_viewer.pdb
+C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\obj\Debug\zone_viewer.csproj.CoreCompileInputs.cache
+C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\obj\Debug\zone_viewer.dll
+C:\Users\dyang\Documents\auto4dbim\zone_viewer\zone_viewer\obj\Debug\zone_viewer.pdb
