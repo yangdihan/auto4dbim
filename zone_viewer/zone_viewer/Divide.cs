@@ -80,17 +80,17 @@ namespace zone_viewer {
             string title = doc.Title;
             string folder_name1 = path.Replace(title + ".rvt", "");
             string folder_name = folder_name1.Replace(title + ".RVT", "");
+            //string folder_name = "C:\\Users\\dyang\\Documents\\test_models\\";
             // Initialize variables allocate memory
             string file_name;
-            double right, left, front, back, top, bot;
-            double level_height, thick_low, thick_high;
+            double right, left, front, back;
+            double top = 1;
+            double bot = 0;
             View docview;
             View3D view3d = null;
-            Level this_level, slab_level, area_level, plan_level;
-            Floor this_slab;
+            Level this_level, area_level, next_level;
             Area area_cur;
             ViewPlan view_plan;
-            AreaScheme plan_scheme;
             BoundingBoxXYZ area_bound;
             BoundingBoxXYZ section_bound = new BoundingBoxXYZ();
             NavisworksExportOptions opt = new NavisworksExportOptions();
@@ -100,8 +100,9 @@ namespace zone_viewer {
             if (areas.Count == 0) {
                 TaskDialog.Show("Process cancelled:", "No zones found in this document. Please define zones first.");
                 return Result.Cancelled;
+            } else {
+                TaskDialog.Show("area count", areas.Count + " areas found");
             }
-
             // find the default 3D view
             ICollection<ElementId> views = new FilteredElementCollector(doc).OfClass(typeof(View3D)).ToElementIds();
             foreach (ElementId docview_id in views) {
@@ -119,69 +120,44 @@ namespace zone_viewer {
 
             // prepare levels, areas, views, thickness
             ICollection<ElementId> levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToElementIds();
-            ICollection<ElementId> slabs = new FilteredElementCollector(doc).OfClass(typeof(Floor)).OfCategory(BuiltInCategory.OST_Floors).ToElementIds();
-            IList<ElementId> levels_id = new List<ElementId>();
-            IList<double> elevations = new List<double>();
-            IList<double> slabs_thick = new List<double>();
-            foreach (ElementId level_id in levels) {
-                levels_id.Add(level_id);
-                this_level = doc.GetElement(level_id) as Level;
-                elevations.Add(this_level.Elevation);
-                foreach (ElementId slab_id in slabs) {
-                    this_slab = doc.GetElement(slab_id) as Floor;
-                    slab_level = doc.GetElement(this_slab.LevelId) as Level;
-                    if (slab_level.Name == this_level.Name) {
-                        slabs_thick.Add(this_slab.get_BoundingBox(null).Max.Z - this_slab.get_BoundingBox(null).Min.Z);
-                    }
-                }
-            }
-            
+            IList<ElementId> levels_list = levels.ToList<ElementId>();
             ICollection<ElementId> area_planViews = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).ToElementIds();
-            ICollection<ElementId> area_schemes = new FilteredElementCollector(doc).OfClass(typeof(AreaScheme)).OfCategory(BuiltInCategory.OST_AreaSchemes).ToElementIds();
-            AreaScheme rentable = doc.GetElement(area_schemes.First()) as AreaScheme;
-            
+
             // loop throu each area
+            int a_count = 0;
             foreach (ElementId area_id in areas) {
+                a_count += 1;
                 area_cur = doc.GetElement(area_id) as Area;
                 area_level = area_cur.Level;
+                //TaskDialog.Show("!", "found area on "+area_level.Name);
                 foreach (ElementId viewPlan_id in area_planViews) {
                     view_plan = doc.GetElement(viewPlan_id) as ViewPlan;
-                    plan_level = doc.GetElement(view_plan.LevelId) as Level;
-                    plan_scheme = view_plan.AreaScheme;
                     // find the view that contains area and get the bbox
-                    if (view_plan.ViewName == area_level.Name && view_plan.ViewType.ToString() == "AreaPlan") {
+                    //if (view_plan.ViewName == area_level.Name && view_plan.ViewType.ToString() == "AreaPlan") {
+                    if (view_plan.LevelId == area_level.LevelId && view_plan.ViewType.ToString() == "AreaPlan") {
+
+                        //view_plan = doc.GetElement(area_level.FindAssociatedPlanViewId()) as View;
                         area_bound = area_cur.get_BoundingBox(view_plan);
+                        //area_bound = area_cur.get_BoundingBox(null);
+                        //TaskDialog.Show("!", area_cur.Name + " " + area_cur.Area + " " + view_plan.Name);
+                        Debug.Print(view_plan.Name);
+                        if (area_bound == null) { // check if bound is null by any reason
+                            Debug.Print(a_count.ToString() + ". " + area_cur.Name + " has no bound");
+                            continue;
+                        }
+
+                        bot = area_level.Elevation;
+                        int cur_idx = levels_list.IndexOf(area_level.Id);
+                        next_level = doc.GetElement(levels_list.ElementAt(cur_idx + 1)) as Level;
+                        top = next_level.Elevation;
+
                         front = area_bound.Max.Y;
                         right = area_bound.Max.X;
                         back = area_bound.Min.Y;
                         left = area_bound.Min.X;
-                        bot = area_level.Elevation;
-                        top = 0;
-                        thick_low = 0;
-                        thick_high = 0;
-                        foreach (ElementId level_id in levels_id) {
-                            this_level = doc.GetElement(level_id) as Level;
-                            if (this_level.Name == area_level.Name) {
-                                int cur_idx = levels_id.IndexOf(level_id);
-                                if (cur_idx+1 < levels_id.Count) {
-                                    level_height = elevations.ElementAt(cur_idx + 1) - elevations.ElementAt(cur_idx);
-                                } else {
-                                    level_height = 500;
-                                }
-                                if (cur_idx+1 < slabs_thick.Count) {
-                                    thick_low = slabs_thick.ElementAt(cur_idx);
-                                    thick_high = slabs_thick.ElementAt(cur_idx + 1);
-                                } else {
-                                    thick_low = slabs_thick.ElementAt(cur_idx);
-                                    thick_high = 0;
-                                }
-                                top = bot + level_height;
-                                break;
-                            }
-                        }
-                        section_bound.Min = new XYZ(left, back, bot - thick_low);
-                        section_bound.Max = new XYZ(right, front, top - thick_high);
-
+                        section_bound.Min = new XYZ(left, back, bot);
+                        section_bound.Max = new XYZ(right, front, top);
+                        TaskDialog.Show("box height", (top - bot).ToString());
                         // set section box and export
                         using (Transaction t = new Transaction(doc, "Set View")) {
                             t.Start();
@@ -197,68 +173,8 @@ namespace zone_viewer {
                         opt.ViewId = view3d.Id;
                         file_name = area_level.Name + "_" + area_cur.Name;
                         doc.Export(folder_name, file_name, opt);
-                        //// structure division
-                        //FilteredElementCollector slab_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Floor), false));
-                        //FilteredElementCollector roof_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(FootPrintRoof), false));
-                        //FilteredElementCollector wallFoundation_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(WallFoundation), false));
-                        //FilteredElementCollector foundation_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralFoundation, false));
-                        //FilteredElementCollector column_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralColumns, false));
-                        //FilteredElementCollector frame_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralFraming, false));
-                        //FilteredElementCollector truss_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StructuralTruss, false));
-                        //FilteredElementCollector massWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_MassWallsAll, false));
-                        //slab_filter.UnionWith(roof_filter).UnionWith(wallFoundation_filter).UnionWith(foundation_filter).UnionWith(column_filter).UnionWith(frame_filter).UnionWith(truss_filter).UnionWith(massWall_filter);
-                        //using (Transaction t = new Transaction(doc, "Filter Element")) {
-                        //    t.Start();
-                        //    view3d.IsolateElementsTemporary(slab_filter.ToElementIds());
-                        //    t.Commit();
-                        //}
-                        //string file_name_structure = area_level.Name + "_" + area_cur.Name + "_structure";
-                        //doc.Export(folder_name, file_name_structure, opt);
-                        //using (Transaction t = new Transaction(doc, "Reset View")) {
-                        //    t.Start();
-                        //    View3D current_view = doc.ActiveView as View3D;
-                        //    current_view.TemporaryViewModes.DeactivateAllModes();
-                        //    t.Commit();
-                        //}
-
-
-                        //// architecture model
-                        //FilteredElementCollector wall_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Wall), false));
-                        //FilteredElementCollector wallType_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(WallType), false));
-                        //FilteredElementCollector ceiling_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(Ceiling), false));
-                        //FilteredElementCollector curtainSys_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(CurtainSystem), false));
-                        //FilteredElementCollector archiFloor_filter = new FilteredElementCollector(doc).WherePasses(new ElementClassFilter(typeof(CeilingAndFloor), false));
-                        //FilteredElementCollector window_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_Windows, false));
-                        //FilteredElementCollector door_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_Doors, false));
-                        //FilteredElementCollector stackWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_StackedWalls, false));
-                        //FilteredElementCollector curtainWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGrids, false));
-                        //FilteredElementCollector CurtainGridsRoof_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsRoof, false));
-                        //FilteredElementCollector CurtainGridsSystem_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsSystem, false));
-                        //FilteredElementCollector CurtainGridsWall_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainGridsWall, false));
-                        //FilteredElementCollector CurtainWallMullions_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallMullions, false));
-                        //FilteredElementCollector CurtainWallPanels_filter = new FilteredElementCollector(doc).WherePasses(new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallPanels, false));
-                        //wall_filter.UnionWith(ceiling_filter).UnionWith(wallType_filter).UnionWith(curtainSys_filter).UnionWith(archiFloor_filter).UnionWith(window_filter).UnionWith(door_filter).UnionWith(stackWall_filter).UnionWith(curtainWall_filter).UnionWith(CurtainGridsRoof_filter).UnionWith(CurtainGridsSystem_filter).UnionWith(CurtainGridsWall_filter).UnionWith(CurtainWallMullions_filter).UnionWith(CurtainWallPanels_filter);
-                        //using (Transaction t = new Transaction(doc, "Filter Element"))
-                        //{
-                        //    t.Start();
-                        //    view3d.IsolateElementsTemporary(wall_filter.ToElementIds());
-                        //    t.Commit();
-                        //}
-                        //string file_name_archi = area_level.Name + "_" + area_cur.Name;
-                        //doc.Export(folder_name, file_name_archi, opt);
-                        //using (Transaction t = new Transaction(doc, "Reset View"))
-                        //{
-                        //    t.Start();
-                        //    View3D current_view = doc.ActiveView as View3D;
-                        //    current_view.TemporaryViewModes.DeactivateAllModes();
-                        //    t.Commit();
-                        //}
-
-                        // MEP to be done
-
-
-
                     }
+
                 }
             }
             using (Transaction t = new Transaction(doc, "Reset View")) {
@@ -337,7 +253,7 @@ namespace zone_viewer {
                     opt.DivideFileIntoLevels = true;
                     opt.ExportElementIds = true;
                     opt.ExportParts = true;
-                    opt.ExportRoomAsAttribute = true;
+                    opt.ExportRoomAsAttribute = false;
                     opt.ExportRoomGeometry = false;
                     opt.ExportScope = NavisworksExportScope.View;
                     opt.ViewId = view3d.Id;
